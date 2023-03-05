@@ -5,15 +5,14 @@ from Common import extract
 
 # 로그파일 로드
 def log_load(PATH):
-    log = f'{PATH}/log.txt'
-    if os.path.isfile(log):
-        f = open(log, 'r')
+    if os.path.isfile(PATH):
+        f = open(PATH, 'r')
         log_list = (f.read().split('\n'))
         f.close()
     else:
         log_list = []
     
-    return log_list, log
+    return log_list
 
 # 포스트 로드 확인
 def check_post(driver):
@@ -25,7 +24,7 @@ def check_post(driver):
             break
         except:
             driver.refresh()
-            if check_count == 3:
+            if check_count == 2:
                 raise '페이지 로드 실패'
             check_count += 1
 
@@ -45,7 +44,7 @@ def collect_qrs(driver, target, log_list):
             tag = driver.find_elements(By.CSS_SELECTOR, f'{dic[pheed][1]} .x1i10hfl')
             for i in tag:
                 qrs = i.get_attribute('href').split('/')[-2]
-                if qrs not in dic[pheed][2]:
+                if qrs not in dic[pheed][2] + dic['general'][2]:
                     if qrs in log_list:
                         if check_count == 3:
                             old = len(dic[pheed][2])
@@ -90,7 +89,7 @@ def read_post(driver):
         link_list = colect_link_within_post(driver, link_list)
         
         try:
-            driver.implicitly_wait(0.5)
+            driver.implicitly_wait(0.2)
             driver.find_element(By.CSS_SELECTOR, '._ab8w ._afxw').click()
             continue
         except:
@@ -107,7 +106,7 @@ def read_post(driver):
             return link_list
 
 # 데이터저장 + 로그기록
-def save_media(driver, output_path, link_list, qrs, log):
+def save_media(driver, output_path, link_list, qrs, log_path):
     for link in link_list:
         try:
             urlretrieve(link, f'{output_path}/{extract(link)}')
@@ -121,22 +120,21 @@ def save_media(driver, output_path, link_list, qrs, log):
                 print('저장 하지 못한 포스트:', qrs)
                 qrs = 0
     if qrs:
-        f = open(log, 'a')
+        f = open(log_path, 'a')
         f.write(f'{qrs}\n')
         f.close()
         
 #
 def pheed(driver, target):
     output_path = f'./instagram/{target}'
+    log_path = f'{output_path}/log.txt'
     os.makedirs(output_path, exist_ok=True)
     
-    log_list, log = log_load(output_path)
+    log_list = log_load(log_path)
 
     pheed_type = collect_qrs(driver, target, log_list)
     
     for qrs_list in [pheed_type['general'][2], pheed_type['reels'][2]]:
-        
-        log_list, log = log_load(output_path)
         
         for qrs in qrs_list[::-1]:
             
@@ -149,4 +147,4 @@ def pheed(driver, target):
             
             link_list = read_post(driver)
             
-            save_media(driver, output_path, link_list, qrs, log)
+            save_media(driver, output_path, link_list, qrs, log_path)
