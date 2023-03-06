@@ -12,7 +12,7 @@ Target : 인스타그램 계정 (구분자 \n)
 Login : 로그인 할 계정  
 Mode : 탐색 범위 설정  
 View : 시각화 설정  
-#### 입력예시  
+**입력예시**  
 ![image](https://user-images.githubusercontent.com/112064615/222964064-bb66f661-16db-4bef-add8-4fb4e774d1b6.png)
 
 ---
