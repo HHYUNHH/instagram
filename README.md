@@ -50,14 +50,7 @@ view (str): 시각화 설정 (대소문자 구별X)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Default: 'Off'  
-```c
-# 예시
-target_list = ['bts.bighitofficial', 'blackpinkofficial']
-ID = 'kimchiman123'
-PW = 'qwer1234'
-mode = 1
-view = 'on'
-```
+
 + ~~view = 'off' 는 mode = 2 만 호환가능~~
 + ~~라이브러리화 후 테스트 안함~~ *확인 완료 이상 없음(2023.02.18_Window10)
 + 버전 체크 안함
