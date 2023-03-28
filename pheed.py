@@ -44,14 +44,13 @@ def collect_qrs(driver, target, log_list):
             tag = driver.find_elements(By.CSS_SELECTOR, f'{dic[pheed][1]} .x1i10hfl')
             for i in tag:
                 qrs = i.get_attribute('href').split('/')[-2]
-                if qrs not in dic[pheed][2] + dic['general'][2]:
-                    if qrs in log_list:
-                        if check_count == 3:
-                            old = len(dic[pheed][2])
-                            break
-                        check_count += 1
-                        continue
+                if qrs not in dic[pheed][2] + log_list:
                     dic[pheed][2].append(qrs)
+                else:
+                    if check_count == 3:
+                        old = len(dic[pheed][2])
+                        break
+                    check_count += 1
             
             if old == len(dic[pheed][2]):
                 break
@@ -65,8 +64,10 @@ def collect_qrs(driver, target, log_list):
                 driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
                 
             old = len(dic[pheed][2])
-            
-    return dic
+    
+    qrs_list = list(set(dic['general'][2] + dic['reels'][2]))
+    if qrs_list: qrs_list.sort()
+    return qrs_list
 
 # 포스트 내 데이터 링크 수집
 def colect_link_within_post(driver, link_list):
@@ -90,7 +91,7 @@ def read_post(driver):
         
         try:
             driver.implicitly_wait(0.2)
-            driver.find_element(By.CSS_SELECTOR, '._ab8w ._afxw').click()
+            driver.find_element(By.CSS_SELECTOR, '._9zm2').click()
             continue
         except:
             if check_count == 3:
@@ -107,6 +108,7 @@ def read_post(driver):
 
 # 데이터저장 + 로그기록
 def save_media(driver, output_path, link_list, qrs, log_path):
+    clear = True
     for link in link_list:
         try:
             urlretrieve(link, f'{output_path}/{extract(link)}')
@@ -118,11 +120,12 @@ def save_media(driver, output_path, link_list, qrs, log_path):
                 urlretrieve(link, f'{output_path}/{extract(link)}')
             except:
                 print('저장 하지 못한 포스트:', qrs)
-                qrs = 0
-    if qrs:
-        f = open(log_path, 'a')
-        f.write(f'{qrs}\n')
-        f.close()
+                clear = False
+    if clear:
+        with open(log_path, 'a') as f:
+            f.write(f'{qrs}\n')
+    # else:
+    #     return qrs
         
 #
 def pheed(driver, target):
@@ -132,19 +135,15 @@ def pheed(driver, target):
     
     log_list = log_load(log_path)
 
-    pheed_type = collect_qrs(driver, target, log_list)
+    qrs_list = collect_qrs(driver, target, log_list)
     
-    for qrs_list in [pheed_type['general'][2], pheed_type['reels'][2]]:
+    for qrs in qrs_list:
         
-        for qrs in qrs_list[::-1]:
-            
-            if qrs in log_list:
-                continue
-            
-            driver.get('https://www.instagram.com/p/' + qrs)
+        driver.get('https://www.instagram.com/p/' + qrs)
 
-            check_post(driver)
-            
-            link_list = read_post(driver)
-            
-            save_media(driver, output_path, link_list, qrs, log_path)
+        check_post(driver)
+        
+        link_list = read_post(driver)
+        
+        # outlier = 
+        save_media(driver, output_path, link_list, qrs, log_path)

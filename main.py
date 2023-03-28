@@ -1,18 +1,31 @@
 import sys
-from PyQt5.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QTextEdit, QLineEdit, QRadioButton, QPushButton, QDesktopWidget, QApplication
-from PyQt5.QtCore import Qt
-from instagram_bot import instagram_bot
+from PyQt5.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QPlainTextEdit, QLineEdit, QRadioButton, QPushButton, QDesktopWidget, QApplication, QProgressBar
+from PyQt5.QtCore import QThread, pyqtSignal
+import Common
+from pheed import pheed
+from highlight import highlight
 
 class MyApp(QWidget):
 
     def __init__(self):
         super().__init__()
+        
+        self.toggle = True
+        self.worker = Worker()
+        self.worker.start()
+        
+        # self.worker.name.connect(self.prograss)
+        self.worker.stop.connect(self.act)
+        
         self.initUI()
-
+        
     def initUI(self):
-        self.setWindowTitle('Instagram Photo&Video')
-        self.resize(500, 200)
-        self.center()
+        self.pbar = QProgressBar(self)
+        self.pbar.setTextVisible(False)
+        
+        
+        self.btn = QPushButton('Start')
+        self.btn.released.connect(self.act)
         
         grid = QGridLayout()
         grid.addWidget(self.group_target(), 0, 0)
@@ -21,16 +34,20 @@ class MyApp(QWidget):
         grid.addWidget(self.group_view(), 1, 1)
         
         vbox = QVBoxLayout()
-        vbox.addWidget(self.lb_state())
+        vbox.addWidget(self.pbar)
         vbox.addLayout(grid)
-        vbox.addWidget(self.btn_play())
+        vbox.addWidget(self.btn)
         self.setLayout(vbox)
         self.show()
+        
+        self.setWindowTitle('Instagram Photo&Video')
+        self.resize(500, 200)
+        self.center()
     
     def group_target(self):
         groupbox = QGroupBox('Target')
         label = QLabel('ID:')
-        self.qte = QTextEdit()
+        self.qte = QPlainTextEdit()
         
         grid = QGridLayout()
         grid.addWidget(label, 0, 0)
@@ -84,25 +101,6 @@ class MyApp(QWidget):
         groupbox.setLayout(vbox)
         
         return groupbox
-
-    def btn_play(self):
-        btn = QPushButton('Start')
-        self.MSG = 'Progressing...'
-        btn.clicked.connect(self.state_print)
-        btn.released.connect(self.play_bot)
-        return btn
-    
-    def lb_state(self):
-        self.label = QLabel('Ready')
-        self.label.setAlignment(Qt.AlignCenter)
-        font = self.label.font()
-        font.setPointSize(20)
-        self.label.setFont(font)
-        return self.label
-    
-    def state_print(self):
-        MSG = self.MSG
-        self.label.setText(MSG)
     
     def check_radio(self):
         if self.qrb1.isChecked():
@@ -119,17 +117,33 @@ class MyApp(QWidget):
         
         return mode, view
     
-    def play_bot(self):
-        target_list = self.qte.toPlainText().split('\n')
-        ID = self.qle1.text()
-        PW = self.qle2.text()
-        mode, view = self.check_radio()
-        try:
-            instagram_bot(target_list, ID, PW, mode, view)
-            self.MSG = 'Complete'
-        except:
-            self.MSG = 'Error'
-        self.state_print()
+    def act(self):
+        if self.toggle:
+            self.toggle = False
+            self.state(self.toggle)
+            
+            self.pbar.setMaximum(0)
+            target_list = self.qte.toPlainText().split('\n')
+            ID = self.qle1.text()
+            PW = self.qle2.text()
+            mode, view = self.check_radio()
+            
+            self.worker.act_start((target_list, ID, PW, mode, view))
+            self.worker.start()
+        
+        elif not self.toggle:
+            self.toggle = True
+            
+            self.worker.act_stop()
+            self.pbar.setMaximum(1)
+            self.pbar.reset()
+            self.state(self.toggle)
+    
+    def prograss(self, Str):
+        self.pbar.text(Str)
+    
+    def state(self, Bool):
+        self.btn.setText({True: "Start", False: "Stop"}[Bool])
     
     def center(self):
         qr = self.frameGeometry()
@@ -137,7 +151,53 @@ class MyApp(QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
+class Worker(QThread):
+    
+    stop = pyqtSignal()
+    # name = pyqtSignal(str)
+    
+    def __init__(self):
+        super().__init__()
+        self.running = False
+        self.driver = False
+    
+    def run(self):
+        if self.running:
+            self.instagram(self.target_list, self.ID, self.PW, self.mode, self.view)
+            # self.running = False
+            self.stop.emit()
+    
+    def driver_on(self, view):
+        self.driver = Common.web(view)
+
+    def act_start(self, INPUT):
+        self.target_list, self.ID, self.PW, self.mode, self.view = INPUT
+        self.running = True
+        
+    def act_stop(self):
+        self.running = False
+        if self.driver:
+            self.driver.quit()
+        
+    def instagram(self, target_list, ID, PW, mode, view):
+        if not mode in [1, 2, 3]:
+            return
+        self.driver = Common.web(view)
+        self.driver.get('https://www.instagram.com')
+        
+        Common.check_login(self.driver, ID, PW)
+
+        for target in target_list:
+            # self.name.emit(target)
+            if mode in [1, 2]:
+                pheed(self.driver, target)
+            if mode in [1, 3]:
+                highlight(self.driver, target)
+            # print(target, '완료')
+
 if __name__ == '__main__':
    app = QApplication(sys.argv)
    ex = MyApp()
    sys.exit(app.exec_())
+   
+# python ./ttemp/main.py

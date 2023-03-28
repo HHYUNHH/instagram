@@ -10,8 +10,9 @@ def web(view):
     options = webdriver.ChromeOptions()
     if view == 'off':
         options.add_argument('headless') # 시각화 on/off
-    elif view != 'on':
-        raise '인자값 에러'
+    elif view == 'on':
+        options.add_argument('--user-data-dir=C:/Users/chois/AppData/Local/Google/Chrome/User Data/Profile 2')
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
     options.add_argument('--mute-audio')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
@@ -20,32 +21,24 @@ def web(view):
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     return driver
 
-# 로그인
-def login(driver, ID, PW):
+def check_login(driver, ID, PW):
     driver.implicitly_wait(10)
-    tag = driver.find_elements(By.CSS_SELECTOR, '._acan')[1]
-    tag.click()
-    tag = driver.find_elements(By.CSS_SELECTOR, '._aa4b')
-    tag[0].send_keys(ID)
-    tag[1].send_keys(PW)
-    tag[1].send_keys(Keys.ENTER)
+    tag = driver.find_elements(By.CSS_SELECTOR, '._aicz')
+    
+    if tag:
+        tag[0].click()
+        tag = driver.find_elements(By.CSS_SELECTOR, '._aa4b')
+        tag[0].send_keys(ID)
+        tag[1].send_keys(PW)
+        tag[1].send_keys(Keys.ENTER)
 
-# 로그인 확인
-def check_login(driver):
-    driver.implicitly_wait(10) 
-    if not driver.find_elements(By.CSS_SELECTOR, '._ab16'):
+    driver.implicitly_wait(5)
+    tag = driver.find_elements(By.CSS_SELECTOR, '.x78zum5.xurb0ha.x47corl')
+    if not tag:
         raise '로그인 실패'
-    time.sleep(1)
 
 # 주소 분석 후 이름, 확장자 리턴
 def extract(Str):
-    for extension in ['.jpg', '.mp4', '.webp', '.png']:
-        if extension in Str:
-            break
-
-    name = Str.split(extension)[0].split('/')[-1]
-    
-    if extension != '.mp4':
-        extension = '.jpg'
-        
-    return name+extension
+    name = Str.split('?')[0].split('/')[-1]
+    # name, extension = Str[0], Str[1]
+    return name
