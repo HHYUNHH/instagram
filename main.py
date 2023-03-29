@@ -180,24 +180,29 @@ class Worker(QThread):
             self.driver.quit()
         
     def instagram(self, target_list, ID, PW, mode, view):
-        if not mode in [1, 2, 3]:
-            return
+
         self.driver = Common.web(view)
         self.driver.get('https://www.instagram.com')
         
-        Common.check_login(self.driver, ID, PW)
+        if Common.check_login(self.driver, ID, PW):
+            print('로그인 실패')
+            return 
 
-        for target in target_list:
-            # self.name.emit(target)
-            if mode in [1, 2]:
-                pheed(self.driver, target)
-            if mode in [1, 3]:
-                highlight(self.driver, target)
-            # print(target, '완료')
+        try:
+            for target in target_list:
+                # self.name.emit(target)
+                if mode in [1, 2]:
+                    pheed(self.driver, target)
+                if mode in [1, 3]:
+                    highlight(self.driver, target)
+                print(target, '완료')
+        except:
+            print('페이지 로드 실패')
+            return
 
 if __name__ == '__main__':
    app = QApplication(sys.argv)
    ex = MyApp()
    sys.exit(app.exec_())
    
-# python ./ttemp/main.py
+# python ./instagram/main.py

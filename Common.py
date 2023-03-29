@@ -22,11 +22,12 @@ def web(view):
     return driver
 
 def check_login(driver, ID, PW):
-    driver.implicitly_wait(10)
+    driver.implicitly_wait(5)
     tag = driver.find_elements(By.CSS_SELECTOR, '._aicz')
     
     if tag:
         tag[0].click()
+        driver.implicitly_wait(5)
         tag = driver.find_elements(By.CSS_SELECTOR, '._aa4b')
         tag[0].send_keys(ID)
         tag[1].send_keys(PW)
@@ -34,8 +35,10 @@ def check_login(driver, ID, PW):
 
     driver.implicitly_wait(5)
     tag = driver.find_elements(By.CSS_SELECTOR, '.x78zum5.xurb0ha.x47corl')
-    if not tag:
-        raise '로그인 실패'
+    if tag:
+        return False
+    else:
+        return True
 
 # 주소 분석 후 이름, 확장자 리턴
 def extract(Str):

@@ -14,43 +14,30 @@ def log_load(PATH):
     
     return log_list
 
-# 포스트 로드 확인
-def check_post(driver):
-    check_count = 0
-    while True:
-        try:
-            driver.implicitly_wait(5)
-            driver.find_element(By.CSS_SELECTOR, '._aatk')
-            break
-        except:
-            driver.refresh()
-            if check_count == 2:
-                raise '페이지 로드 실패'
-            check_count += 1
-
 # 피드 탐색
 def collect_qrs(driver, target, log_list):
-    check_count = 0
     dic = {
         'general' :['', '._aabd', []],
         'reels' : ['/reels', '._aajw', []]
         }
     for pheed in dic:
+        
         old = 0
         driver.get('https://www.instagram.com/' + target + dic[pheed][0])
         while True:
+            check_count = 0
             time.sleep(1)
             driver.implicitly_wait(5)
             tag = driver.find_elements(By.CSS_SELECTOR, f'{dic[pheed][1]} .x1i10hfl')
             for i in tag:
                 qrs = i.get_attribute('href').split('/')[-2]
-                if qrs not in dic[pheed][2] + log_list:
+                if qrs not in dic[pheed][2]:
+                    if qrs in log_list:
+                        if check_count == 3:
+                            old = len(dic[pheed][2])
+                            break
+                        check_count += 1
                     dic[pheed][2].append(qrs)
-                else:
-                    if check_count == 3:
-                        old = len(dic[pheed][2])
-                        break
-                    check_count += 1
             
             if old == len(dic[pheed][2]):
                 break
@@ -68,6 +55,20 @@ def collect_qrs(driver, target, log_list):
     qrs_list = list(set(dic['general'][2] + dic['reels'][2]))
     if qrs_list: qrs_list.sort()
     return qrs_list
+
+# 포스트 로드 확인
+def check_post(driver):
+    check_count = 0
+    while True:
+        try:
+            driver.implicitly_wait(5)
+            driver.find_element(By.CSS_SELECTOR, '._aatk')
+            break
+        except:
+            driver.refresh()
+            if check_count == 2:
+                raise
+            check_count += 1
 
 # 포스트 내 데이터 링크 수집
 def colect_link_within_post(driver, link_list):
@@ -95,7 +96,7 @@ def read_post(driver):
             continue
         except:
             if check_count == 3:
-                raise '페이지 로드 실패'
+                raise
             # NoneType 에러 방지
             if None in link_list or not link_list:
                 driver.refresh()
@@ -119,13 +120,13 @@ def save_media(driver, output_path, link_list, qrs, log_path):
                 link = tag.get_attribute('content')
                 urlretrieve(link, f'{output_path}/{extract(link)}')
             except:
-                print('저장 하지 못한 포스트:', qrs)
+                # print('저장 하지 못한 포스트:', qrs)
                 clear = False
     if clear:
         with open(log_path, 'a') as f:
             f.write(f'{qrs}\n')
-    # else:
-    #     return qrs
+    else:
+        print(qrs)
         
 #
 def pheed(driver, target):
@@ -140,10 +141,9 @@ def pheed(driver, target):
     for qrs in qrs_list:
         
         driver.get('https://www.instagram.com/p/' + qrs)
-
+        
         check_post(driver)
-        
         link_list = read_post(driver)
-        
+
         # outlier = 
         save_media(driver, output_path, link_list, qrs, log_path)
