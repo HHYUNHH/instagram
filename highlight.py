@@ -22,17 +22,18 @@ def colect_link_within_highlight(driver):
     return tag
 
 def highlight(driver, target):
-    output_path = f'./instagram/{target}/highlight'
-    os.makedirs(output_path, exist_ok=True)
-    log_list = os.listdir(output_path)
-    driver.get('https://www.instagram.com/' + target)
     
+    driver.get('https://www.instagram.com/' + target)
     try:
         check_highlight(driver)
     except:
-        return None
+        return # None
     
-    check_highlight_load(driver, 10)
+    output_path = f'./instagram/{target}/highlight'
+    os.makedirs(output_path, exist_ok=True)
+    log_list = os.listdir(output_path)
+    
+    check_highlight_load(driver, 20)
     
     while True:
         try:
@@ -48,7 +49,10 @@ def highlight(driver, target):
         link = tag[0].get_attribute('src')
         file = extract(link)
         if not file in log_list:
-            urlretrieve(link, f'{output_path}/{file}')
+            try:
+                urlretrieve(link, f'{output_path}/{file}')
+            except:
+                pass
         while True:
             try:
                 driver.find_element(By.CSS_SELECTOR, 'button._aafj').click()

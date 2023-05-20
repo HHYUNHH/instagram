@@ -3,6 +3,31 @@ from urllib.request import urlretrieve
 import time, os
 from Common import extract
 
+# 쿼리 정렬 사전
+Str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+vacdic = dict()
+for i in range(len(Str)):
+    vacdic[Str[i]] = i+1
+
+# 쿼리 벡터화
+def vac(Str, dic):
+    temp = 0
+    lenth = len(Str)
+    for  i in range(lenth):
+        temp += 100**(lenth-1-i)*dic[Str[i]]
+    return temp
+
+# 쿼리 정렬 함수
+def newsort(lst):
+    sortlst = list()
+    maxlen = len(max(lst, key=len))
+    for i in lst:
+        j = i.rjust(maxlen, 'A')
+        sortlst.append([i, vac(j, vacdic)])
+    sortlst = sorted(sortlst, key=lambda x: x[1])
+    sortlst = [x[0] for x in sortlst]
+    return sortlst
+
 # 로그파일 로드
 def log_load(PATH):
     if os.path.isfile(PATH):
@@ -53,7 +78,9 @@ def collect_qrs(driver, target, log_list):
             old = len(dic[pheed][2])
     
     qrs_list = list(set(dic['general'][2] + dic['reels'][2]))
-    if qrs_list: qrs_list.sort()
+    if qrs_list:
+        qrs_list = newsort(qrs_list)
+        
     return qrs_list
 
 # 포스트 로드 확인

@@ -15,7 +15,7 @@ class MyApp(QWidget):
         self.worker.start()
         
         # self.worker.name.connect(self.prograss)
-        self.worker.stop.connect(self.act)
+        self.worker.stop.connect(self.act_stop)
         
         self.initUI()
         
@@ -119,25 +119,30 @@ class MyApp(QWidget):
     
     def act(self):
         if self.toggle:
-            self.toggle = False
-            self.state(self.toggle)
-            
-            self.pbar.setMaximum(0)
-            target_list = self.qte.toPlainText().split('\n')
-            ID = self.qle1.text()
-            PW = self.qle2.text()
-            mode, view = self.check_radio()
-            
-            self.worker.act_start((target_list, ID, PW, mode, view))
-            self.worker.start()
+            self.act_start()
         
         elif not self.toggle:
-            self.toggle = True
-            
-            self.worker.act_stop()
-            self.pbar.setMaximum(1)
-            self.pbar.reset()
-            self.state(self.toggle)
+            self.act_stop()
+    
+    def act_start(self):
+        self.toggle = False
+        self.state(self.toggle)
+        
+        self.pbar.setMaximum(0)
+        target_list = self.qte.toPlainText().split('\n')
+        ID = self.qle1.text()
+        PW = self.qle2.text()
+        mode, view = self.check_radio()
+        
+        self.worker.act_start((target_list, ID, PW, mode, view))
+        self.worker.start()
+        
+    def act_stop(self):
+        self.toggle = True
+        self.worker.act_stop()
+        self.pbar.setMaximum(1)
+        self.pbar.reset()
+        self.state(self.toggle)
     
     def prograss(self, Str):
         self.pbar.text(Str)
@@ -159,12 +164,10 @@ class Worker(QThread):
     def __init__(self):
         super().__init__()
         self.running = False
-        self.driver = False
     
     def run(self):
         if self.running:
             self.instagram(self.target_list, self.ID, self.PW, self.mode, self.view)
-            # self.running = False
             self.stop.emit()
     
     def driver_on(self, view):
@@ -176,19 +179,21 @@ class Worker(QThread):
         
     def act_stop(self):
         self.running = False
-        if self.driver:
+        try:
             self.driver.quit()
+        except:
+            pass
         
     def instagram(self, target_list, ID, PW, mode, view):
 
         self.driver = Common.web(view)
         self.driver.get('https://www.instagram.com')
         
-        if Common.check_login(self.driver, ID, PW):
-            print('로그인 실패')
-            return 
-
         try:
+            if Common.check_login(self.driver, ID, PW):
+                print('로그인 실패')
+                return
+            
             for target in target_list:
                 # self.name.emit(target)
                 if mode in [1, 2]:

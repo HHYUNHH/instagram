@@ -3,15 +3,23 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
-import time
+import os
+
 
 def web(view):
+    for i in os.listdir('C:/Users/'):
+        path = f'C:/Users/{i}/AppData/Local/Google/Chrome/'
+        if os.path.isdir(path):
+            break
+        path = 'C:/Users/Chrome/'
+    path += 'User Data/Profile 2'
+    os.makedirs(path, exist_ok=True)
     view = view.lower()
     options = webdriver.ChromeOptions()
     if view == 'off':
         options.add_argument('headless') # 시각화 on/off
     elif view == 'on':
-        options.add_argument('--user-data-dir=C:/Users/chois/AppData/Local/Google/Chrome/User Data/Profile 2')
+        options.add_argument(f'--user-data-dir={path}')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     options.add_argument('--mute-audio')
     options.add_argument('--no-sandbox')
