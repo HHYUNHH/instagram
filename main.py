@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QPlainTextEdit, QLineEdit, QRadioButton, QPushButton, QDesktopWidget, QApplication, QProgressBar
 from PyQt5.QtCore import QThread, pyqtSignal
 import Common
-from pheed import pheed
+from feed import feed
 from highlight import highlight
 
 class MyApp(QWidget):
@@ -76,8 +76,8 @@ class MyApp(QWidget):
         
     def group_mode(self):
         groupbox = QGroupBox('Mode')
-        self.qrb1 = QRadioButton('Pheed + Highlight')
-        self.qrb2 = QRadioButton('Only Pheed')
+        self.qrb1 = QRadioButton('Feed + Highlight')
+        self.qrb2 = QRadioButton('Only Feed')
         self.qrb3 = QRadioButton('Only Highlight')
         self.qrb1.setChecked(True)
         
@@ -197,7 +197,7 @@ class Worker(QThread):
             for target in target_list:
                 # self.name.emit(target)
                 if mode in [1, 2]:
-                    pheed(self.driver, target)
+                    feed(self.driver, target)
                 if mode in [1, 3]:
                     highlight(self.driver, target)
                 print(target, '완료')

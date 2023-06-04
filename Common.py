@@ -42,7 +42,7 @@ def check_login(driver, ID, PW):
         tag[1].send_keys(Keys.ENTER)
 
     driver.implicitly_wait(5)
-    tag = driver.find_elements(By.CSS_SELECTOR, '.x78zum5.xurb0ha.x47corl')
+    tag = driver.find_elements(By.CSS_SELECTOR, '.x1h9r5lt')#.x78zum5.xurb0ha.x47corl
     if tag:
         return False
     else:
@@ -51,5 +51,7 @@ def check_login(driver, ID, PW):
 # 주소 분석 후 이름, 확장자 리턴
 def extract(Str):
     name = Str.split('?')[0].split('/')[-1]
+    for extension in ['jpg', 'jpeg', 'heic', 'heif']:
+        name = name.replace(extension, 'png')
     # name, extension = Str[0], Str[1]
     return name
