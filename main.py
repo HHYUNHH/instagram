@@ -25,7 +25,7 @@ class MyApp(QWidget):
         
         
         self.btn = QPushButton('Start')
-        self.btn.released.connect(self.act)
+        self.btn.clicked.connect(self.act)
         
         grid = QGridLayout()
         grid.addWidget(self.group_target(), 0, 0)
@@ -77,8 +77,8 @@ class MyApp(QWidget):
     def group_mode(self):
         groupbox = QGroupBox('Mode')
         self.qrb1 = QRadioButton('Feed + Highlight')
-        self.qrb2 = QRadioButton('Only Feed')
-        self.qrb3 = QRadioButton('Only Highlight')
+        self.qrb2 = QRadioButton('Feed')
+        self.qrb3 = QRadioButton('Highlight')
         self.qrb1.setChecked(True)
         
         vbox = QVBoxLayout()
