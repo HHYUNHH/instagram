@@ -67,22 +67,27 @@ def collect_qrs(driver, target, log_list):
             if old == len(dic[feed][2]):
                 break
             
-            old_height = driver.execute_script("return document.body.scrollHeight")
-            driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
-            new_height = driver.execute_script("return document.body.scrollHeight")
-            
-            # if old_height == new_height:
-            #     time.sleep(2)
-            #     driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+            # old_height = driver.execute_script("return document.body.scrollHeight")
+            # driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+            # new_height = driver.execute_script("return document.body.scrollHeight")
 
-            for num in range(2):
-                if old_height != new_height:
-                    break
-                time.sleep(1)
-                driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
-                new_height = driver.execute_script("return document.body.scrollHeight")
+            # for num in range(5):
+            #     if old_height != new_height:
+            #         time.sleep(1)
+            #         break
+            #     time.sleep(1)
+                # driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+                # new_height = driver.execute_script("return document.body.scrollHeight")
                 
-            old = len(dic[feed][2])
+            # old = len(dic[feed][2])
+            
+            for num in range(5):
+                driver.execute_script(f'window.scrollTo(0, {tag[-1].location["y"]});')
+                time.sleep(1)
+                if tag[-1] != driver.find_elements(By.CSS_SELECTOR, f'{dic[feed][1]} .x1i10hfl')[-1]:
+                    time.sleep(1)
+                    break
+                old = len(dic[feed][2])
     
     qrs_list = list(set(dic['general'][2] + dic['reels'][2]))
     if qrs_list:
